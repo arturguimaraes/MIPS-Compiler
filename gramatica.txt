@@ -1,0 +1,27 @@
+P → id = int ; P  
+P → I 
+I → D  ;  I 
+I → D 
+D → def id ( ARGS ) = E ;
+ARGS → id ARGS’
+ARGS’ → ,ARGS
+ARGS’ → Ɛ
+SEQ’ → , E SEQ’
+SEQ’ → Ɛ 
+SEQ → E SEQ’
+E → int 
+E → id E’
+E’ → ( E SEQ’ )
+E’ → Ɛ
+E → if E opRel E then E else E
+E-> T E’’ 
+E’’ -> addop T E’’ 
+E’’ -> Ɛ 
+addop -> + 
+addop -> - 
+T-> F T’ 
+T’-> multop F T’ 
+T’-> Ɛ 
+multop -> * 
+F -> ( E ) 
+//F -> number

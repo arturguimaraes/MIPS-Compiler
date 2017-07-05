@@ -1,0 +1,286 @@
+/* CUP Parser */
+
+package compiler;
+
+import java.util.*;
+import java.io.*;
+import java_cup.runtime.*;
+
+parser code {:
+    public static void main(String[] args) throws Exception{
+        try {
+			Parser parser = new Parser();
+			parser.setScanner(new Lexer(new FileReader (args[0])));
+            parser.parse();
+        } catch ( IOException exception ) {
+            throw new Error( "Não conseguiu abrir arquivo." );
+        }
+    }
+
+    public void syntax_error (Symbol s) {
+        report_error("Erro de sintaxe na linha: " + (s.right+1) + " e na coluna: " + s.left + ". Texto: -- " +
+        s.value+ " --", null);
+    }
+    
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        System.out.println("\nOcorreu um erro na linha " + (s.right)+ ", coluna "+s.left+". Identificador " +
+        s.value + " não reconhecido.");
+	}
+:};
+
+//D TOKENS 
+terminal Token COMENTARIO_EM_BLOCO, COMENTARIO_CURTO, SE, ENTAO, SENAO, DEF;
+terminal Token MAIOR, MENOR, IGUAL;
+terminal Token SOMA, SUBTRACAO, MULTIPLICACAO, DIVISAO;
+terminal Token ABRE_PARENTESIS, FECHA_PARENTESIS, PONTO_E_VIRGULA, VIRGULA;
+terminal Token branco, IDENTIFICADOR, INTEIRO;
+
+//D NOS
+non terminal No P, I, D, ARGS, ARGS_N, SEQ, SEQ_N, EXP, EXP_N, EXP_TEMP;
+non terminal No T, T_TEMP, F, OP_REL, OP_SOMA, OP_MULT, VAZIO;
+
+//D PRECEDENCIAS
+precedence left PONTO_E_VIRGULA;
+precedence left ABRE_PARENTESIS;
+precedence left VIRGULA;
+precedence left MAIOR, MENOR, IGUAL;
+precedence left SOMA, SUBTRACAO;
+precedence left MULTIPLICACAO, DIVISAO;
+
+start with P;
+
+/*------------------------- CONSTRUCAO DA ARVORE -------------------------*/
+
+P								::= IDENTIFICADOR:identificador IGUAL:igual INTEIRO:inteiro PONTO_E_VIRGULA:ponto_e_virgula P:P
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(new No(identificador));
+										no.addFilho(new No(igual));
+										no.addFilho(new No(inteiro));
+										no.addFilho(new No(ponto_e_virgula));
+										no.addFilho(P);
+										RESULT = no;
+									:}
+									| I:I
+									{:
+										System.out.println(I);
+										RESULT = I;
+									:}
+									;
+	
+I								::=	D:D I:I
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(D);
+										no.addFilho(I);
+										RESULT = no;
+									:}
+									| D:D
+									{:
+										RESULT = D;
+									:}
+									;
+					
+D							::=	DEF:def IDENTIFICADOR:identificador ABRE_PARENTESIS:abre_parentesis ARGS:ARGS FECHA_PARENTESIS:fecha_parentesis IGUAL:igual EXP:EXP
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(def);
+										no.addFilho(identificador);
+										no.addFilho(abre_parentesis);
+										no.addFilho(ARGS);
+										no.addFilho(fecha_parentesis);
+										no.addFilho(igual);
+										no.addFilho(EXP);
+										RESULT = no;
+									:}
+									;
+									
+ARGS							::= IDENTIFICADOR:identificador ARGS_N:ARGS_N
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(identificador);
+										no.addFilho(ARGS_N);
+										RESULT = no;
+									:}
+									;
+									
+ARGS_N					::= VIRGULA:virgula ARGS:ARGS
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(virgula);
+										no.addFilho(ARGS);
+										RESULT = no;
+									:}
+									|
+									{:
+										RESULT = new No();
+									:}	
+			                        ;
+									
+SEQ_N						::= VIRGULA:virgula EXP:EXP SEQ_N:SEQ_N
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(virgula);
+										no.addFilho(EXP);
+										no.addFilho(SEQ_N);
+										RESULT = no;
+									:}
+									|
+									{:
+										RESULT = new No();
+									:}
+									;
+									
+SEQ							::= EXP:EXP SEQ_N:SEQ_N
+									{:
+										No no = new No(EXP);
+										no.addFilho(SEQ_N);
+										RESULT = no;
+									:}
+									|
+									{:
+										RESULT = new No();
+									:}
+									;
+			
+EXP_N						::= ABRE_PARENTESIS:abre_parentesis EXP:EXP SEQ_N:SEQ_N FECHA_PARENTESIS:fecha_parentesis
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(abre_parentesis);
+										no.addFilho(EXP);
+										no.addFilho(SEQ_N);
+										no.addFilho(fecha_parentesis);
+										RESULT = no;
+									:}
+									|
+									{:
+										RESULT = new No();
+									:}
+									;
+									
+EXP							::= INTEIRO:inteiro
+									{:
+										No no = new No(inteiro);
+										RESULT = no;
+									:}
+									| IDENTIFICADOR:identificador EXP_N:EXP_N
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(identificador);
+										no.addFilho(EXP_N);
+										RESULT = no;
+									:}
+									| SE:se EXP:expressao1 OP_REL:OP_REL EXP:expressao2 ENTAO:entao EXP:expressao3 SENAO:senao EXP:expressao4
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(se);
+										no.addFilho(expressao1);
+										no.addFilho(OP_REL);
+										no.addFilho(expressao2);
+										no.addFilho(entao);
+										no.addFilho(expressao3);
+										no.addFilho(senao);
+										no.addFilho(expressao4);
+										RESULT = no;
+									:}
+									| T:T EXP_TEMP:EXP_TEMP
+									{:
+										No no = T;
+										no.addFilho(EXP_TEMP);
+										RESULT = no;
+									:}
+									;								
+
+EXP_TEMP					::= OP_SOMA:OP_SOMA T:T EXP_TEMP:EXP_TEMP
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(OP_SOMA);
+										no.addFilho(T);
+										no.addFilho(EXP_TEMP);
+										RESULT = no;
+									:}
+									|
+									{:
+										RESULT = new No();
+									:}
+									;
+									
+T								::= F:F T_TEMP:T_TEMP
+									{:
+										No no = F;
+										no.addFilho(T_TEMP);
+										RESULT = no;
+									:}
+									;
+							
+T_TEMP							::= OP_MULT:OP_MULT F:F T_TEMP:T_TEMP
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(OP_MULT);
+										no.addFilho(F);
+										no.addFilho(T_TEMP);
+										RESULT = no;
+									:}
+									|
+									{:
+										RESULT = new No();
+									:}
+									;
+									
+F								::= ABRE_PARENTESIS:abre_parentesis EXP:EXP FECHA_PARENTESIS:fecha_parentesis
+									{:
+										No no = new No(new Token("#"));
+										no.addFilho(abre_parentesis);
+										no.addFilho(EXP);
+										no.addFilho(fecha_parentesis);
+										RESULT = no;
+									:}
+									; 
+							
+OP_REL								::= MAIOR:maior
+									{:
+										No no = new No(maior);
+										RESULT = no;
+									:}
+									| MENOR:menor
+									{:
+										No no = new No(menor);
+										RESULT = no;
+									:}
+									|IGUAL:igual
+									{:
+										No no = new No(igual);
+										RESULT = no;
+									:}
+									;
+				
+OP_SOMA								::= SOMA:soma
+									{:
+										No no = new No(soma);
+										RESULT = no;
+									:}
+									| SUBTRACAO:subtracao
+									{:
+										No no = new No(subtracao);
+										RESULT = no;
+									:}
+									;
+									
+OP_MULT								::= MULTIPLICACAO:multiplicacao
+									{:
+										No no = new No(multiplicacao);
+										RESULT = no;
+									:}
+									| DIVISAO:divisao
+									{:
+										No no = new No(divisao);
+										RESULT = no;
+									:}
+									;			
+							
+VAZIO								::= branco:branco 
+									{:
+										RESULT = new No();
+									:}
+									;
+									
