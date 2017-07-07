@@ -28,33 +28,29 @@ parser code {:
 	}
 :};
 
-//D TOKENS 
+//TOKENS 
 terminal Token COMENTARIO_EM_BLOCO, COMENTARIO_CURTO, SE, ENTAO, SENAO, DEF;
 terminal Token MAIOR, MENOR, IGUAL;
 terminal Token SOMA, SUBTRACAO, MULTIPLICACAO, DIVISAO;
 terminal Token ABRE_PARENTESIS, FECHA_PARENTESIS, PONTO_E_VIRGULA, VIRGULA;
 terminal Token branco, IDENTIFICADOR, INTEIRO;
 
-//D NOS
-non terminal No P, I, D, ARGS, ARGS_N, SEQ, SEQ_N, EXP, EXP_N, EXP_TEMP;
-non terminal No T, T_TEMP, F, OP_REL, OP_SOMA, OP_MULT, VAZIO;
+//NOS
+non terminal No P, I, D, ARGS, SEQ, EXP, OP_ARIT, OP_REL, OP_SOMA, OP_MULT;
 
-//D PRECEDENCIAS
-precedence left PONTO_E_VIRGULA;
-precedence left ABRE_PARENTESIS;
-precedence left VIRGULA;
+//PRECEDENCIAS
+precedence left ABRE_PARENTESIS, FECHA_PARENTESIS;
 precedence left MAIOR, MENOR, IGUAL;
+precedence left SE, ENTAO, SENAO;
 precedence left SOMA, SUBTRACAO;
 precedence left MULTIPLICACAO, DIVISAO;
 
-start with P;
-
 /*------------------------- CONSTRUCAO DA ARVORE -------------------------*/
+start with P;
 
 P								::= IDENTIFICADOR:identificador IGUAL:igual INTEIRO:inteiro PONTO_E_VIRGULA:ponto_e_virgula P:P
 									{:
-										No no = new No(new Token("#"));
-										no.addFilho(new No(identificador));
+										No no = new No(identificador);
 										no.addFilho(new No(igual));
 										no.addFilho(new No(inteiro));
 										no.addFilho(new No(ponto_e_virgula));
@@ -63,98 +59,63 @@ P								::= IDENTIFICADOR:identificador IGUAL:igual INTEIRO:inteiro PONTO_E_VIR
 									:}
 									| I:I
 									{:
-										System.out.println(I);
-										RESULT = I;
+										No no = new No(I);
+										RESULT = no;
 									:}
 									;
 	
 I								::=	D:D I:I
 									{:
-										No no = new No(new Token("#"));
-										no.addFilho(D);
+										No no = new No(D);
 										no.addFilho(I);
 										RESULT = no;
 									:}
 									| D:D
 									{:
-										RESULT = D;
+										No no = new No(D);
+										RESULT = no;
 									:}
 									;
 					
-D							::=	DEF:def IDENTIFICADOR:identificador ABRE_PARENTESIS:abre_parentesis ARGS:ARGS FECHA_PARENTESIS:fecha_parentesis IGUAL:igual EXP:EXP
+D							::=	DEF:def IDENTIFICADOR:identificador ABRE_PARENTESIS:abre_parentesis ARGS:ARGS FECHA_PARENTESIS:fecha_parentesis IGUAL:igual EXP:EXP PONTO_E_VIRGULA:ponto_e_virgula
 									{:
-										No no = new No(new Token("#"));
-										no.addFilho(def);
+										No no = new No(def);
 										no.addFilho(identificador);
 										no.addFilho(abre_parentesis);
 										no.addFilho(ARGS);
 										no.addFilho(fecha_parentesis);
 										no.addFilho(igual);
 										no.addFilho(EXP);
+										no.addFilho(ponto_e_virgula);
 										RESULT = no;
 									:}
 									;
 									
-ARGS							::= IDENTIFICADOR:identificador ARGS_N:ARGS_N
+ARGS							::= IDENTIFICADOR:identificador VIRGULA:virgula ARGS:ARGS
 									{:
-										No no = new No(new Token("#"));
-										no.addFilho(identificador);
-										no.addFilho(ARGS_N);
-										RESULT = no;
-									:}
-									;
-									
-ARGS_N					::= VIRGULA:virgula ARGS:ARGS
-									{:
-										No no = new No(new Token("#"));
+										No no = new No(identificador);
 										no.addFilho(virgula);
 										no.addFilho(ARGS);
 										RESULT = no;
 									:}
-									|
+									| IDENTIFICADOR:identificador
 									{:
-										RESULT = new No();
-									:}	
-			                        ;
-									
-SEQ_N						::= VIRGULA:virgula EXP:EXP SEQ_N:SEQ_N
-									{:
-										No no = new No(new Token("#"));
-										no.addFilho(virgula);
-										no.addFilho(EXP);
-										no.addFilho(SEQ_N);
+										No no = new No(identificador);
 										RESULT = no;
 									:}
-									|
-									{:
-										RESULT = new No();
-									:}
 									;
-									
-SEQ							::= EXP:EXP SEQ_N:SEQ_N
+										
+SEQ							::= EXP:EXP
 									{:
 										No no = new No(EXP);
-										no.addFilho(SEQ_N);
 										RESULT = no;
 									:}
-									|
+									| SEQ:SEQ VIRGULA:virgula EXP:EXP
 									{:
-										RESULT = new No();
-									:}
-									;
-			
-EXP_N						::= ABRE_PARENTESIS:abre_parentesis EXP:EXP SEQ_N:SEQ_N FECHA_PARENTESIS:fecha_parentesis
-									{:
-										No no = new No(new Token("#"));
-										no.addFilho(abre_parentesis);
+										No no = new No(SEQ);
+										no.addFilho(virgula);
 										no.addFilho(EXP);
-										no.addFilho(SEQ_N);
-										no.addFilho(fecha_parentesis);
 										RESULT = no;
-									:}
-									|
-									{:
-										RESULT = new No();
 									:}
 									;
 									
@@ -163,17 +124,21 @@ EXP							::= INTEIRO:inteiro
 										No no = new No(inteiro);
 										RESULT = no;
 									:}
-									| IDENTIFICADOR:identificador EXP_N:EXP_N
+									| IDENTIFICADOR:identificador
 									{:
-										No no = new No(new Token("#"));
-										no.addFilho(identificador);
-										no.addFilho(EXP_N);
+										No no = new No(identificador);
+										RESULT = no;
+									:}
+									| EXP:expressao1 OP_ARIT:OP_ARIT EXP:expressao2 	
+									{:
+										No no = new No(expressao1);
+										no.addFilho(OP_ARIT);
+										no.addFilho(expressao2);
 										RESULT = no;
 									:}
 									| SE:se EXP:expressao1 OP_REL:OP_REL EXP:expressao2 ENTAO:entao EXP:expressao3 SENAO:senao EXP:expressao4
 									{:
-										No no = new No(new Token("#"));
-										no.addFilho(se);
+										No no = new No(se);
 										no.addFilho(expressao1);
 										no.addFilho(OP_REL);
 										no.addFilho(expressao2);
@@ -183,60 +148,16 @@ EXP							::= INTEIRO:inteiro
 										no.addFilho(expressao4);
 										RESULT = no;
 									:}
-									| T:T EXP_TEMP:EXP_TEMP
+									| IDENTIFICADOR:identificador ABRE_PARENTESIS:abre_parentesis SEQ:SEQ FECHA_PARENTESIS:fecha_parentesis 
 									{:
-										No no = T;
-										no.addFilho(EXP_TEMP);
+										No no = new No(identificador);
+										no.addFilho(abre_parentesis);
+										no.addFilho(SEQ);
+										no.addFilho(fecha_parentesis);
 										RESULT = no;
 									:}
 									;								
 
-EXP_TEMP					::= OP_SOMA:OP_SOMA T:T EXP_TEMP:EXP_TEMP
-									{:
-										No no = new No(new Token("#"));
-										no.addFilho(OP_SOMA);
-										no.addFilho(T);
-										no.addFilho(EXP_TEMP);
-										RESULT = no;
-									:}
-									|
-									{:
-										RESULT = new No();
-									:}
-									;
-									
-T								::= F:F T_TEMP:T_TEMP
-									{:
-										No no = F;
-										no.addFilho(T_TEMP);
-										RESULT = no;
-									:}
-									;
-							
-T_TEMP							::= OP_MULT:OP_MULT F:F T_TEMP:T_TEMP
-									{:
-										No no = new No(new Token("#"));
-										no.addFilho(OP_MULT);
-										no.addFilho(F);
-										no.addFilho(T_TEMP);
-										RESULT = no;
-									:}
-									|
-									{:
-										RESULT = new No();
-									:}
-									;
-									
-F								::= ABRE_PARENTESIS:abre_parentesis EXP:EXP FECHA_PARENTESIS:fecha_parentesis
-									{:
-										No no = new No(new Token("#"));
-										no.addFilho(abre_parentesis);
-										no.addFilho(EXP);
-										no.addFilho(fecha_parentesis);
-										RESULT = no;
-									:}
-									; 
-							
 OP_REL								::= MAIOR:maior
 									{:
 										No no = new No(maior);
@@ -253,8 +174,8 @@ OP_REL								::= MAIOR:maior
 										RESULT = no;
 									:}
 									;
-				
-OP_SOMA								::= SOMA:soma
+
+OP_ARIT								::= SOMA:soma
 									{:
 										No no = new No(soma);
 										RESULT = no;
@@ -264,9 +185,7 @@ OP_SOMA								::= SOMA:soma
 										No no = new No(subtracao);
 										RESULT = no;
 									:}
-									;
-									
-OP_MULT								::= MULTIPLICACAO:multiplicacao
+									| MULTIPLICACAO:multiplicacao
 									{:
 										No no = new No(multiplicacao);
 										RESULT = no;
@@ -276,11 +195,4 @@ OP_MULT								::= MULTIPLICACAO:multiplicacao
 										No no = new No(divisao);
 										RESULT = no;
 									:}
-									;			
-							
-VAZIO								::= branco:branco 
-									{:
-										RESULT = new No();
-									:}
 									;
-									

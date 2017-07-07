@@ -59,6 +59,7 @@ public class Main {
                     String lexicalPath = absolutePath + lexicalFile;
                     String[] argslexic = {lexicalPath};
                     String[] argssintatic = {"-parser", "Parser", "-symbols", "Sym", sintaticPath};
+                    
                     try {
                     	System.out.println("\nGerando Analisador Léxico...");
                     	jflex.Main.main(argslexic);
@@ -66,6 +67,7 @@ public class Main {
                     } catch (Exception ex) {
                         System.out.println("Erro ao gerar o Analisador Léxico!");
                     }
+                    
                     try {
                     	System.out.println("\nGerando Analisador Sintático...");
                         java_cup.Main.main(argssintatic);
@@ -74,6 +76,7 @@ public class Main {
                     } catch (Exception ex) {
                         System.out.println("Erro ao gerar o Analisador Sintático!");
                     }
+                    
                     File lexer = new File("Parser.java");
                     File symbols = new File("Sym.java");
                     lexer.renameTo(new File(absolutePath + "/src/compiler/Parser.java"));
