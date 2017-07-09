@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/EDS/Dropbox/UFF/Matérias/Compiladores/Kowada 2017.1/Trabalho/MIPS Compiler/java-cup-11a.jar"/>
-	<classpathentry kind="lib" path="C:/Users/EDS/Dropbox/UFF/Matérias/Compiladores/Kowada 2017.1/Trabalho/MIPS Compiler/jflex-1.6.1.jar"/>
+	<classpathentry kind="lib" path="D:/Dropbox/UFF/Matérias/Compiladores/Kowada 2017.1/Trabalho/MIPS Compiler/java-cup-11a.jar"/>
+	<classpathentry kind="lib" path="D:/Dropbox/UFF/Matérias/Compiladores/Kowada 2017.1/Trabalho/MIPS Compiler/jflex-1.6.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

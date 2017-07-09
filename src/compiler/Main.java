@@ -2,14 +2,13 @@ package compiler;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
 	
 	@SuppressWarnings("resource")
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		Scanner in = new Scanner(System.in);
 		File file = new File("");
 		String absolutePath = file.getAbsolutePath();
@@ -18,7 +17,10 @@ public class Main {
 				  		"Escolha uma opção:\n" + 
 				  		"1 - Gerar Classes dos Analisadores Léxico e Sintático\n" +
 				  		"2 - Compilar\n" +
+				  		"4 - Geração de Código\n" +
 				  		"9 - Sair\n";
+		
+		Object arvore = null;
 		
 		do {
             System.out.println(menu);
@@ -84,17 +86,29 @@ public class Main {
                     break;
                 
             	case 2:
-                    String sourcecode = absolutePath + "/src/compiler/Program.pg";
-
                     try {
-                        Parser p = new Parser(new Lexer(new FileReader(sourcecode)));
+                    	System.out.println("\n\n----------------- Elementos do Programa -----------------\n");
+                    	String sourcecode = absolutePath + "/src/compiler/Program.pg";
+                    	Parser p = new Parser(new Lexer(new FileReader(sourcecode)));
                         Object result = p.parse().value;
+                        arvore = result;
+                        System.out.println("\n\n----------------- Árvore Sintática -----------------\n");
                         System.out.println("Compilação concluída!\n" + (result != null ? result : ""));
                     } catch (Exception e) {
                     	System.out.println("Erro de compilação!");
                         e.printStackTrace();
                     }
                     break;
+                
+                //Geração de Código
+            	case 4:
+            		if (arvore != null) {
+            			CodeGenerator generator = new CodeGenerator((No) arvore);
+                		generator.GenerateCode();
+            		}
+            		else
+            			System.out.println("Arvore sintática não construída!");
+            		break;
                    
                 //Sair
                 case 9:
