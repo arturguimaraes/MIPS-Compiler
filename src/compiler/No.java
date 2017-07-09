@@ -122,17 +122,6 @@ public class No {
             
             System.out.println(prefixo + tabulacao + this.token.valor);
             
-    		/*FileWriter fw = null;
-    		
-            fw = new FileWriter("lua/GeneratedCode.java", true);
-            String token_java = this.escreve(token);
-            fw.append(token_java);
-			
-			if (fw != null){
-				fw.close();
-        	};*/
-            
-            
             for (int i = 0; i < filhos.size() - 1; i++) {
                 if(filhos.get(i) != null)
                 	filhos.get(i).imprime(prefixo + espaco, false);

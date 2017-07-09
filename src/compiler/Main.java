@@ -104,10 +104,10 @@ public class Main {
             	case 4:
             		if (arvore != null) {
             			CodeGenerator generator = new CodeGenerator((No) arvore);
-                		generator.GenerateCode();
+            			System.out.println("Código em MIPS gerado abaixo e no arquivo mips.txt:\n" + generator.GenerateCode());
             		}
             		else
-            			System.out.println("Arvore sintática não construída!");
+            			System.out.println("Arvore Sintática não construída!");
             		break;
                    
                 //Sair
