@@ -17,6 +17,7 @@ public class Main {
 				  		"Escolha uma opção:\n" + 
 				  		"1 - Gerar Classes dos Analisadores Léxico e Sintático\n" +
 				  		"2 - Compilar\n" +
+				  		"3 - Analise Semantica" +
 				  		"4 - Geração de Código\n" +
 				  		"9 - Sair\n";
 		
