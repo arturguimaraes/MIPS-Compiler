@@ -21,7 +21,7 @@ public class Main {
 				  		"9 - Sair\n";
 		
 		Object arvore = null;
-		
+		No raiz = null;
 		do {
             System.out.println(menu);
             option = in.nextInt();
@@ -92,6 +92,7 @@ public class Main {
                     	Parser p = new Parser(new Lexer(new FileReader(sourcecode)));
                         Object result = p.parse().value;
                         arvore = result;
+                        raiz = (No)result;
                         System.out.println("\n\n----------------- Árvore Sintática -----------------\n");
                         System.out.println("Compilação concluída!\n" + (result != null ? result : ""));
                     } catch (Exception e) {
@@ -99,15 +100,19 @@ public class Main {
                         e.printStackTrace();
                     }
                     break;
+                    
+            	case 3:
+            		Semantica.checaSemantica(raiz);            		
+            		break;
                 
                 //Geração de Código
             	case 4:
             		if (arvore != null) {
             			CodeGenerator generator = new CodeGenerator((No) arvore);
-            			System.out.println("Código em MIPS gerado abaixo e no arquivo mips.txt:\n" + generator.GenerateCode());
+                		System.out.println("C digo em MIPS gerado abaixo e no arquivo mips.txt:\n" + generator.GenerateCode());
             		}
             		else
-            			System.out.println("Arvore Sintática não construída!");
+            			System.out.println("Arvore sintática não construída!");
             		break;
                    
                 //Sair
