@@ -17,12 +17,11 @@ public class Main {
 				  		"Escolha uma opção:\n" + 
 				  		"1 - Gerar Classes dos Analisadores Léxico e Sintático\n" +
 				  		"2 - Compilar\n" +
-				  		"3 - Analise Semantica" +
+				  		"3 - Analise Semantica\n" +
 				  		"4 - Geração de Código\n" +
 				  		"9 - Sair\n";
 		
-		Object arvore = null;
-		No raiz = null;
+		No arvore = null;
 		do {
             System.out.println(menu);
             option = in.nextInt();
@@ -92,8 +91,7 @@ public class Main {
                     	String sourcecode = absolutePath + "/src/compiler/Program.pg";
                     	Parser p = new Parser(new Lexer(new FileReader(sourcecode)));
                         Object result = p.parse().value;
-                        arvore = result;
-                        raiz = (No)result;
+                        arvore = (No)result;
                         System.out.println("\n\n----------------- Árvore Sintática -----------------\n");
                         System.out.println("Compilação concluída!\n" + (result != null ? result : ""));
                     } catch (Exception e) {
@@ -103,7 +101,10 @@ public class Main {
                     break;
                     
             	case 3:
-            		Semantica.checaSemantica(raiz);            		
+            		if (arvore != null)
+            			Semantica.checaSemantica(arvore);            		
+            		else
+            			System.out.println("Arvore sintática não construída!");
             		break;
                 
                 //Geração de Código

@@ -156,13 +156,12 @@ public class Semantica {
 			recuperaParams(raiz.getFilho(2), f);
 			funcs.add(f);
 		}
-			if(raiz.getFilhos() != null) {
-				for(No n: raiz.getFilhos()) {
-					preencheFuncs(n);
-				}	
-			}			
 		
-		
+		if(raiz.getFilhos() != null) {
+			for(No n: raiz.getFilhos()) {
+				preencheFuncs(n);
+			}	
+		}	
 	}
 
 	public static void recuperaParams(No node, Funcao f) {
