@@ -2,7 +2,7 @@ a = 312;
 b = 111;
 def mdc(a,b) =
 	if mod(a,b)= 0
-		then c
+		then b
 	else mdc(b,mod(a,b));
 def mod(a,b) =
 	if a< b

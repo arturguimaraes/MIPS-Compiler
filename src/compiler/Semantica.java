@@ -1,10 +1,6 @@
 package compiler;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import com.sun.xml.internal.ws.util.StringUtils;
 
 public class Semantica {
 	
@@ -127,16 +123,13 @@ public class Semantica {
 		}
 	}
 
-	public static boolean isNumeric(String str)  
-	{  
-	  try  
-	  {  
-	    double d = Double.parseDouble(str);  
-	  }  
-	  catch(NumberFormatException nfe)  
-	  {  
-	    return false;  
-	  }  
+	@SuppressWarnings("unused")
+	public static boolean isNumeric(String str) {
+		try	{  
+			double d = Double.parseDouble(str);  
+		} catch(NumberFormatException nfe) {  
+			return false;  
+		}
 	  return true;  
 	}	
 

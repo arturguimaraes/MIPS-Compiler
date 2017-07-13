@@ -13,13 +13,13 @@ addiu $sp $sp - 4
 li $a0 0
 lw $t1 4($sp)
 addiu $sp $sp 4
-beq $a0 $t1 ifmod0thencelsemdc_true
-ifmod0thencelsemdc_false:
+beq $a0 $t1 ifmod0thenbelsemdc_true
+ifmod0thenbelsemdc_false:
 	li $a0 mdc
-	b ifmod0thencelsemdc_end_if
-ifmod0thencelsemdc_true:
-	li $a0 c
-ifmod0thencelsemdc_end_if:
+	b ifmod0thenbelsemdc_end_if
+ifmod0thenbelsemdc_true:
+	li $a0 b
+ifmod0thenbelsemdc_end_if:
 mod_entry:
 	move $fp $sp
 	sw $ra 0($sp)

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 public class No {
     private Token token;
+    private String tipo; //Os tipos devem ser escritos exatamente como proposto no Parser.cup, em maiúsculo
     private List<No> filhos;
 
     public No() {
@@ -13,26 +14,51 @@ public class No {
     	this.filhos = new ArrayList<>();
     }
 
-    public No(Token token){
-        this.token = token;
-        this.filhos = new ArrayList<>();
+    public No(Token token, String tipo) throws Exception{
+    	if(validType(tipo)) {
+	        this.token = token;
+	        this.tipo = tipo;
+	        this.filhos = new ArrayList<>();
+    	}
+    	else
+    		throw new Exception("Invalid node type");
     }
     
     public No(No no){
         this.token = no.token;
+        this.tipo = no.tipo;
+        this.filhos = no.filhos;
+    }
+    
+    public No(No no, String tipo){
+        this.token = no.token;
+        this.tipo = tipo;
         this.filhos = no.filhos;
     }
     
     public String getToken() {
     	return this.token.toString();
     }
+    
+    public String getTipo() {
+    	return this.tipo;
+    }
 
-    public void addFilho(Token token){
-        filhos.add(new No(token));
+    public void addFilho(Token token, String tipo) throws Exception{
+        try {
+			filhos.add(new No(token, tipo));
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
     }
 
     public void addFilho(No no){
-        filhos.add(no);
+    	filhos.add(no);
+    }
+    
+    public void addFilho(No no, String tipo){
+    	no.tipo = tipo;
+    	filhos.add(no);
     }
     
     public List<No> getFilhos() {
@@ -70,6 +96,44 @@ public class No {
     		}
     	}
     	return null;
+    }
+    
+    public Boolean validType(String tipo) {
+    	String[] tipos = {
+    						//"P",
+			    			//"I",
+			    			//"D",
+			    			//"ARGS",
+			    			//"SEQ",
+			    			"EXP",
+			    			"EXP_ARIT",
+			    			"EXP_REL",
+			    			"OP_ARIT",
+			    			"OP_REL",
+			    			"SE",
+			    			"ENTAO",
+			    			"SENAO",
+			    			"DEF",
+			    			"MAIOR",
+			    			"MENOR",
+			    			"IGUAL",
+			    			"SOMA",
+			    			"SUBTRACAO",
+			    			"MULTIPLICACAO",
+			    			"DIVISAO",
+			    			"ABRE_PARENTESIS",
+			    			"FECHA_PARENTESIS",
+			    			"PONTO_E_VIRGULA",
+			    			"VIRGULA",
+			    			"IDENTIFICADOR",
+			    			"INTEIRO"
+			    		};
+    	
+    	for (String tipoDef : tipos)
+    		if (tipoDef.equals(tipo))
+    			return true;
+    	
+    	return false;
     }
 
     public String escreve(Token token) throws IOException {	  	
@@ -120,7 +184,7 @@ public class No {
             	espaco = "|   ";
             }    
             
-            System.out.println(prefixo + tabulacao + this.token.valor);
+            System.out.println(prefixo + tabulacao + this.getToken() + "(" + this.getTipo() + ")");
             
             for (int i = 0; i < filhos.size() - 1; i++) {
                 if(filhos.get(i) != null)

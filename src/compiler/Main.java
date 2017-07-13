@@ -19,7 +19,7 @@ public class Main {
 				  		"2 - Compilar\n" +
 				  		"3 - Analise Semantica\n" +
 				  		"4 - Geração de Código\n" +
-				  		"9 - Sair\n";
+				  		"5 - Sair\n";
 		
 		No arvore = null;
 		do {
@@ -118,7 +118,7 @@ public class Main {
             		break;
                    
                 //Sair
-                case 9:
+                case 5:
                 	System.out.println("Saindo...\n\n");
                 	break;
                 
@@ -128,6 +128,6 @@ public class Main {
                     break;
                 
             }
-        } while (option != 9);
+        } while (option != 5);
 	}
 }

@@ -16,7 +16,7 @@ public class CodeGenerator {
 		PrintWriter printer = new PrintWriter("mips.txt");
 		printer.print(result);
 		printer.close();
-		return result;
+		return result;		
 	}
 	
 	public String GenerateCodeForNode(No node) {

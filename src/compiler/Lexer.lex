@@ -2,7 +2,6 @@ package compiler;
 
 import java_cup.runtime.*;
 import java_cup.*;
-import java.util.*;
 
 %%
 
