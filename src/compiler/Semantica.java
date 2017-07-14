@@ -102,10 +102,11 @@ public class Semantica {
 		//o resto da expressao sera filho do primeiro caracter dela
 		if(raiz.getFilhos() != null) {
 			for (int i = 0; i < raiz.getFilhos().size(); i++) {
-				if(!raiz.getFilho(i).getTipo().equals("VIRGULA")) {
+				if(raiz.getFilho(i).getTipo().equals("VIRGULA")){
 					counter++;
 				}
 			}
+			//counter++;
 		}
 		return counter;
 	}
