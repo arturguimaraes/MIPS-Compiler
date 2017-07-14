@@ -40,6 +40,8 @@ public class CodeGenerator {
 				return codeGenIdParam(e);
 			case "DEF":
 				return codeGenDefFunction(e);
+			case "EXP":
+				return codeGenFuncionCall(e);
 			case "EXP_ARIT":
 				return codeGenExpArit(e);
 			case "SE":
@@ -64,6 +66,8 @@ public class CodeGenerator {
 			case "ENTAO":
 				return codeGenEmpty();
 			case "SENAO":
+				return codeGenEmpty();
+			case "OP_REL":
 				return codeGenEmpty();
 			//Casos não tratados
 			default:
@@ -92,11 +96,24 @@ public class CodeGenerator {
 		return "move $a0 " + reg + "\n";
 	}
 	
+	//cgen(f(e1,...,en))
+	public String codeGenFuncionCall(No e) {
+		return "---MIPS implementation for " + printFunction(e) + "---\n";
+	}
+	
+	public String printFunction(No e) {
+		String result = e.getToken();
+		if (e.getFilhos() != null)
+			for(No filho : e.getFilhos())
+				result += printFunction(filho);
+		return result;
+	}
+	
 	//cgen(def f(x1,...,xn) = e)
 	public String codeGenDefFunction(No e) {
 		if (e.comparaTipoFilho(0, "IDENTIFICADOR_FUNCAO_DEF")) {
 			String functionName = e.getFilho(0).getToken();
-			int z = (4 * e.countArgs()) + 8;
+			int z = (4 * e.countArgsDef()) + 8;
 			String result = functionName + "_entry:\n" +
 					  		"\tmove $fp $sp\n" +
 					  		"\tsw $ra 0($sp)\n" + 
@@ -119,24 +136,24 @@ public class CodeGenerator {
 	public String codeGenExpArit(No e) {
 		switch (e.getFilho(0).getToken()) {
 			case "+":
-				return codeGenSum(e, e.getFilho(1));
+				return codeGenSum(e);
 			case "-":
-				return codeGenSubtract(e, e.getFilho(1));
+				return codeGenSubtract(e);
 			case "*":
-				return codeGenDefault(e);
+				return codeGenMult(e);
 			case "/":
-				return codeGenDefault(e);
+				return codeGenDiv(e);
 			default:
 				return codeGenDefault(e);
 		}
 	}
 	
 	//cgen(e1 + e2)
-	public String codeGenSum(No e1, No e2) {
-		String result = codeGenIdParam(e1);
+	public String codeGenSum(No e) {
+		String result = codeGenIdParam(e);
 		result += "sw $a0 0($sp)\n" +
 				  "addiu $sp $sp - 4\n";
-		result += codeGen(e2);
+		result += codeGen(e.getFilho(1));
 		result += "lw $t1 4($sp)\n" + 
 				  "add $a0 $t1 $a0\n" + 
 				  "addiu $sp $sp 4\n";
@@ -144,19 +161,63 @@ public class CodeGenerator {
 	}
 	
 	//cgen(e1 - e2)
-	public String codeGenSubtract(No e1, No e2) {
-		String result = codeGenIdParam(e1);
+	public String codeGenSubtract(No e) {
+		String result = codeGenIdParam(e);
 		result += "sw $a0 0($sp)\n" +
 				  "addiu $sp $sp - 4\n";
-		result += codeGen(e2);
+		result += codeGen(e.getFilho(1));
 		result += "lw $t1 4($sp)\n" + 
 				  "sub $a0 $t1 $a0\n" + 
 				  "addiu $sp $sp 4\n";
 		return result;
 	}
 	
-	//cgen(if e1 = e2 then e3 else e4)
+	//cgen(e1 * e2)
+	public String codeGenMult(No e) {
+		String result = codeGenIdParam(e);
+		result += "sw $a0 0($sp)\n" +
+				  "addiu $sp $sp - 4\n";
+		result += codeGen(e.getFilho(1));
+		result += "lw $t1 4($sp)\n" + 
+				  "mult $a0, $t1\n" + 
+				  "mfhi $a0" +
+				  "addiu $sp $sp 4\n";
+		return result;
+	}
+	
+	//cgen(e1 / e2)
+	public String codeGenDiv(No e) {
+		String result = codeGenIdParam(e);
+		result += "sw $a0 0($sp)\n" +
+				  "addiu $sp $sp - 4\n";
+		result += codeGen(e.getFilho(1));
+		result += "lw $t1 4($sp)\n" + 
+				  "div $a0, $t1\n" + 
+				  "mflo $a0" +
+				  "addiu $sp $sp 4\n";
+		return result;
+	}
+	
+	//cgen(if e1 op_rel e2 then e3 else e4)
 	public String codeGenIfThenElse(No e) {
+		if (e.comparaTipoFilho(1, "OP_REL")) {
+			switch (e.getFilho(1).getToken()) {
+				case "=":
+					return codeGenIfThenElseIgual(e);
+				case ">":
+					return codeGenIfThenElseMaior(e);
+				case "<":
+					return codeGenIfThenElseMenor(e);
+				default:
+					return codeGenDefault(e);
+			}
+		}
+		else
+			return codeGenDefault(e);
+	}
+	
+	//cgen(if e1 = e2 then e3 else e4)
+	public String codeGenIfThenElseIgual(No e) {
 		No e1 = e.getFilho(0);
 		No e2 = e.getFilho(2);
 		No e3 = e.getFilho(4);
@@ -169,6 +230,54 @@ public class CodeGenerator {
 		result += "lw $t1 4($sp)\n" +
 				  "addiu $sp $sp 4\n" +
 				  "beq $a0 $t1 " + ifName + "_true\n" +
+				  ifName + "_false:\n";
+		result += "\t" + codeGen(e4);
+		result += "\tb " + ifName + "_end_if\n" +
+				  ifName + "_true:\n" + 
+				  "\t" + codeGen(e3) +
+				  ifName + "_end_if:\n";
+		return result;
+	}
+	
+	//cgen(if e1 > e2 then e3 else e4)
+	public String codeGenIfThenElseMaior(No e) {
+		No e1 = e.getFilho(0);
+		No e2 = e.getFilho(2);
+		No e3 = e.getFilho(4);
+		No e4 = e.getFilho(6);
+		String ifName = "if" + e1.getToken() + e2.getToken() + "then" + e3.getToken() + "else" + e4.getToken();
+		String result = codeGen(e1);
+		result += "sw $a0 0($sp)\n" +
+				  "addiu $sp $sp - 4\n";
+		result += codeGen(e2);
+		result += "lw $t1 4($sp)\n" +
+				  "addiu $sp $sp 4\n" +
+				  "slt $t2 $a0 $t1\n" +
+				  "beq $t2 1 " + ifName + "_true\n" +
+				  ifName + "_false:\n";
+		result += "\t" + codeGen(e4);
+		result += "\tb " + ifName + "_end_if\n" +
+				  ifName + "_true:\n" + 
+				  "\t" + codeGen(e3) +
+				  ifName + "_end_if:\n";
+		return result;
+	}
+	
+	//cgen(if e1 < e2 then e3 else e4)
+	public String codeGenIfThenElseMenor(No e) {
+		No e1 = e.getFilho(0);
+		No e2 = e.getFilho(2);
+		No e3 = e.getFilho(4);
+		No e4 = e.getFilho(6);
+		String ifName = "if" + e1.getToken() + e2.getToken() + "then" + e3.getToken() + "else" + e4.getToken();
+		String result = codeGen(e1);
+		result += "sw $a0 0($sp)\n" +
+				  "addiu $sp $sp - 4\n";
+		result += codeGen(e2);
+		result += "lw $t1 4($sp)\n" +
+				  "addiu $sp $sp 4\n" +
+				  "slt $t2 $t1 $a0\n" +
+				  "beq $t2 1 " + ifName + "_true\n" +
 				  ifName + "_false:\n";
 		result += "\t" + codeGen(e4);
 		result += "\tb " + ifName + "_end_if\n" +

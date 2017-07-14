@@ -11,26 +11,25 @@ public class No {
     private List<No> filhos;
 	private String[] tipos = {	"EXP",
 								"EXP_ARIT", //codeGen
-		    					"EXP_REL",
 		    					"OP_ARIT", //codeGen
-		    					"OP_REL",
+		    					"OP_REL", //codeGen
 		    					"SE", //codeGen
 		    					"ENTAO", //codeGen
 		    					"SENAO", //codeGen				//Os que estão com "codeGen" estão tradados na geração de código
 		    					"DEF", //codeGen				//"P", "I", "D", "ARGS", "SEQ" não são utilizados
-		    					"MAIOR",
-		    					"MENOR",
+		    					"MAIOR", //codeGen
+		    					"MENOR", //codeGen
 		    					"IGUAL", //codeGen
 		    					"SOMA", //codeGen
 		    					"SUBTRACAO", //codeGen
-		    					"MULTIPLICACAO",
-		    					"DIVISAO",
+		    					"MULTIPLICACAO", //codeGen
+		    					"DIVISAO", //codeGen
 		    					"ABRE_PARENTESIS", //codeGen
 		    					"FECHA_PARENTESIS", //codeGen
 		    					"PONTO_E_VIRGULA", //codeGen
 		    					"VIRGULA", //codeGen
 		    					"IDENTIFICADOR", //codeGen
-		    					"IDENTIFICADOR_FUNCAO",
+		    					"IDENTIFICADOR_FUNCAO", //codeGen
 		    					"IDENTIFICADOR_FUNCAO_DEF", //codeGen
 		    					"IDENTIFICADOR_PARAM", //codeGen
 		    					"INTEIRO" //codeGen
@@ -144,18 +143,18 @@ public class No {
   		return this.getToken().equals(token);
   	}
   	
-  	public int countArgs() {
+	public int countArgsDef() {
 		if(this.getFilhos() != null && this.getFilho(2).getFilhos() != null)
-			return this.getFilho(2).recursiveCountArgs();
+			return this.getFilho(2).recursiveCountArgsDef();
 		return 1;
 	}
   	
-  	public int recursiveCountArgs() {
+  	public int recursiveCountArgsDef() {
   		if (this.getFilhos() == null)
   			return 1;
   		else
-  			return 1 + this.getFilho(1).recursiveCountArgs();
-  	}
+  			return 1 + this.getFilho(1).recursiveCountArgsDef();
+  	}  	
 
     public String escreve(Token token) throws IOException {	  	
 		switch(token.valor) {

@@ -10,26 +10,25 @@ mdc_entry:
 	jr $ra
 move $a0 $r1
 move $a0 $r2
----MIPS implementation for mod (EXP)---
+---MIPS implementation for mod(a,b)---
 sw $a0 0($sp)
 addiu $sp $sp - 4
 lw $t1 4($sp)
 addiu $sp $sp 4
 beq $a0 $t1 ifmod0thenbelsemdc_true
 ifmod0thenbelsemdc_false:
-	---MIPS implementation for mdc (EXP)---
+	---MIPS implementation for mdc(b,mod(a,b))---
 	b ifmod0thenbelsemdc_end_if
 ifmod0thenbelsemdc_true:
 	move $a0 $r2
 ifmod0thenbelsemdc_end_if:
----MIPS implementation for mod (EXP)---
+---MIPS implementation for mod(a,b)---
 move $a0 $r1
 move $a0 $r2
----MIPS implementation for = (OP_REL)---
 move $a0 $r2
----MIPS implementation for mdc (EXP)---
+---MIPS implementation for mdc(b,mod(a,b))---
 move $a0 $r2
----MIPS implementation for mod (EXP)---
+---MIPS implementation for mod(a,b)---
 move $a0 $r1
 move $a0 $r2
 mod_entry:
@@ -48,18 +47,18 @@ addiu $sp $sp - 4
 move $a0 $r2
 lw $t1 4($sp)
 addiu $sp $sp 4
-beq $a0 $t1 ifabthenaelsemod_true
+slt $t2 $t1 $a0
+beq $t2 1 ifabthenaelsemod_true
 ifabthenaelsemod_false:
-	---MIPS implementation for mod (EXP)---
+	---MIPS implementation for mod(a-b,b)---
 	b ifabthenaelsemod_end_if
 ifabthenaelsemod_true:
 	move $a0 $r1
 ifabthenaelsemod_end_if:
 move $a0 $r1
----MIPS implementation for < (OP_REL)---
 move $a0 $r2
 move $a0 $r1
----MIPS implementation for mod (EXP)---
+---MIPS implementation for mod(a-b,b)---
 move $a0 $r1
 sw $a0 0($sp)
 addiu $sp $sp - 4
