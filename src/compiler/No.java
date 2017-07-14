@@ -5,9 +5,36 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class No {
-    private Token token;
-    private String tipo; //Os tipos devem ser escritos exatamente como proposto no Parser.cup, em maiúsculo
+    
+	private Token token;
+    private String tipo;
     private List<No> filhos;
+	private String[] tipos = {	"EXP",
+								"EXP_ARIT", //codeGen
+		    					"EXP_REL",
+		    					"OP_ARIT", //codeGen
+		    					"OP_REL",
+		    					"SE", //codeGen
+		    					"ENTAO", //codeGen
+		    					"SENAO", //codeGen				//Os que estão com "codeGen" estão tradados na geração de código
+		    					"DEF", //codeGen				//"P", "I", "D", "ARGS", "SEQ" não são utilizados
+		    					"MAIOR",
+		    					"MENOR",
+		    					"IGUAL", //codeGen
+		    					"SOMA", //codeGen
+		    					"SUBTRACAO", //codeGen
+		    					"MULTIPLICACAO",
+		    					"DIVISAO",
+		    					"ABRE_PARENTESIS", //codeGen
+		    					"FECHA_PARENTESIS", //codeGen
+		    					"PONTO_E_VIRGULA", //codeGen
+		    					"VIRGULA", //codeGen
+		    					"IDENTIFICADOR", //codeGen
+		    					"IDENTIFICADOR_FUNCAO",
+		    					"IDENTIFICADOR_FUNCAO_DEF", //codeGen
+		    					"IDENTIFICADOR_PARAM", //codeGen
+		    					"INTEIRO" //codeGen
+		    				};
 
     public No() {
     	this.token = null;
@@ -15,7 +42,7 @@ public class No {
     }
 
     public No(Token token, String tipo) throws Exception{
-    	if(validType(tipo)) {
+    	if(tipoValido(tipo)) {
 	        this.token = token;
 	        this.tipo = tipo;
 	        this.filhos = new ArrayList<>();
@@ -98,43 +125,37 @@ public class No {
     	return null;
     }
     
-    public Boolean validType(String tipo) {
-    	String[] tipos = {
-    						//"P",
-			    			//"I",
-			    			//"D",
-			    			//"ARGS",
-			    			//"SEQ",
-			    			"EXP",
-			    			"EXP_ARIT",
-			    			"EXP_REL",
-			    			"OP_ARIT",
-			    			"OP_REL",
-			    			"SE",
-			    			"ENTAO",
-			    			"SENAO",
-			    			"DEF",
-			    			"MAIOR",
-			    			"MENOR",
-			    			"IGUAL",
-			    			"SOMA",
-			    			"SUBTRACAO",
-			    			"MULTIPLICACAO",
-			    			"DIVISAO",
-			    			"ABRE_PARENTESIS",
-			    			"FECHA_PARENTESIS",
-			    			"PONTO_E_VIRGULA",
-			    			"VIRGULA",
-			    			"IDENTIFICADOR",
-			    			"INTEIRO"
-			    		};
-    	
-    	for (String tipoDef : tipos)
+    public Boolean tipoValido(String tipo) {
+    	for (String tipoDef : this.tipos)
     		if (tipoDef.equals(tipo))
     			return true;
-    	
     	return false;
     }
+    
+    public Boolean comparaTipo(String tipo) {
+    	return this.tipo.equals(tipo);
+    }
+    
+    public Boolean comparaTipoFilho(int posicaoFilho, String tipo) {
+    	return this.getFilho(posicaoFilho).getTipo().equals(tipo);
+    }
+    
+  	public Boolean compareToken(String token) {
+  		return this.getToken().equals(token);
+  	}
+  	
+  	public int countArgs() {
+		if(this.getFilhos() != null && this.getFilho(2).getFilhos() != null)
+			return this.getFilho(2).recursiveCountArgs();
+		return 1;
+	}
+  	
+  	public int recursiveCountArgs() {
+  		if (this.getFilhos() == null)
+  			return 1;
+  		else
+  			return 1 + this.getFilho(1).recursiveCountArgs();
+  	}
 
     public String escreve(Token token) throws IOException {	  	
 		switch(token.valor) {
@@ -162,7 +183,6 @@ public class No {
 			try {
 				imprime();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         return "";
@@ -184,7 +204,7 @@ public class No {
             	espaco = "|   ";
             }    
             
-            System.out.println(prefixo + tabulacao + this.getToken() + "(" + this.getTipo() + ")");
+            System.out.println(prefixo + tabulacao + this.getToken() + "\t\t\t\t(" + this.getTipo() + ")");
             
             for (int i = 0; i < filhos.size() - 1; i++) {
                 if(filhos.get(i) != null)
@@ -194,5 +214,35 @@ public class No {
             if (filhos.size() > 0 && filhos.get(filhos.size() - 1) != null)
                 filhos.get(filhos.size() - 1).imprime(prefixo + espaco, true);
         }
+    }
+    
+    public String retornaString() throws IOException {
+    	return this.retornaString("", false);
+    }
+    
+    public String retornaString(String prefixo, boolean folha) throws IOException {
+        String result = "";
+    	if(this.token != null && this.token.valor != null) {
+        	String tabulacao = "", espaco = "";
+            
+            if(folha) {
+            	tabulacao = " -- ";
+            	espaco ="    ";
+            } else {
+            	tabulacao = "|-- ";
+            	espaco = "|   ";
+            }    
+            
+            result += prefixo + tabulacao + this.getToken() + "\t\t\t\t(" + this.getTipo() + ")\n";
+            
+            for (int i = 0; i < filhos.size() - 1; i++) {
+                if(filhos.get(i) != null)
+                	result += filhos.get(i).retornaString(prefixo + espaco, false);
+            }
+            
+            if (filhos.size() > 0 && filhos.get(filhos.size() - 1) != null)
+                result += filhos.get(filhos.size() - 1).retornaString(prefixo + espaco, true);
+        }
+    	return result;
     }
 }

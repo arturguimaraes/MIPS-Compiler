@@ -2,6 +2,7 @@ package compiler;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -16,8 +17,8 @@ public class Main {
 		String menu = 	"\n\n------------------------ COMPILADOR - MENU ------------------------------------------------------\n\n" +
 				  		"Escolha uma opção:\n" + 
 				  		"1 - Gerar Classes dos Analisadores Léxico e Sintático\n" +
-				  		"2 - Compilar\n" +
-				  		"3 - Analise Semantica\n" +
+				  		"2 - Compilar (Program.txt no root do projeto)\n" +
+				  		"3 - Analise Semântica\n" +
 				  		"4 - Geração de Código\n" +
 				  		"5 - Sair\n";
 		
@@ -87,13 +88,16 @@ public class Main {
                 
             	case 2:
                     try {
-                    	System.out.println("\n\n----------------- Elementos do Programa -----------------\n");
-                    	String sourcecode = absolutePath + "/src/compiler/Program.pg";
+                    	System.out.println("\n----------------- Elementos do Programa -----------------\n");
+                    	String sourcecode = absolutePath + "/Program.txt";
                     	Parser p = new Parser(new Lexer(new FileReader(sourcecode)));
-                        Object result = p.parse().value;
-                        arvore = (No)result;
+                        arvore = (No)p.parse().value;
                         System.out.println("\n\n----------------- Árvore Sintática -----------------\n");
-                        System.out.println("Compilação concluída!\n" + (result != null ? result : ""));
+                        System.out.println("Compilação e construção da árvore sintática concluídos!\n" + 
+                        				   "A árvore sintática foi salva no arquivo SintaticTree.txt" + (arvore != null ? arvore : ""));
+                        PrintWriter printer = new PrintWriter("SintaticTree.txt");
+                		printer.print(arvore.retornaString());
+                		printer.close();
                     } catch (Exception e) {
                     	System.out.println("Erro de compilação!");
                         e.printStackTrace();
@@ -111,7 +115,7 @@ public class Main {
             	case 4:
             		if (arvore != null) {
             			CodeGenerator generator = new CodeGenerator((No) arvore);
-                		System.out.println("C digo em MIPS gerado abaixo e no arquivo mips.txt:\n" + generator.GenerateCode());
+                		System.out.println("\n----------------- Código em MIPS (tambem no arquivo mips.txt) -----------------\n\n" + generator.GenerateCode());
             		}
             		else
             			System.out.println("Arvore sintática não construída!");

@@ -1,51 +1,71 @@
+li $r1 312
+li $r2 111
 mdc_entry:
 	move $fp $sp
 	sw $ra 0($sp)
 	addiu $sp $sp -4
-li $a0 def
 	lw $ra 4($sp)
 	addiu $sp $sp 16
 	lw $fp 0($sp)
 	jr $ra
-li $a0 mod
+move $a0 $r1
+move $a0 $r2
+---MIPS implementation for mod (EXP)---
 sw $a0 0($sp)
 addiu $sp $sp - 4
-li $a0 0
 lw $t1 4($sp)
 addiu $sp $sp 4
 beq $a0 $t1 ifmod0thenbelsemdc_true
 ifmod0thenbelsemdc_false:
-	li $a0 mdc
+	---MIPS implementation for mdc (EXP)---
 	b ifmod0thenbelsemdc_end_if
 ifmod0thenbelsemdc_true:
-	li $a0 b
+	move $a0 $r2
 ifmod0thenbelsemdc_end_if:
+---MIPS implementation for mod (EXP)---
+move $a0 $r1
+move $a0 $r2
+---MIPS implementation for = (OP_REL)---
+move $a0 $r2
+---MIPS implementation for mdc (EXP)---
+move $a0 $r2
+---MIPS implementation for mod (EXP)---
+move $a0 $r1
+move $a0 $r2
 mod_entry:
 	move $fp $sp
 	sw $ra 0($sp)
 	addiu $sp $sp -4
-li $a0 def
 	lw $ra 4($sp)
 	addiu $sp $sp 16
 	lw $fp 0($sp)
 	jr $ra
-li $a0 a
+move $a0 $r1
+move $a0 $r2
+move $a0 $r1
 sw $a0 0($sp)
 addiu $sp $sp - 4
-li $a0 b
+move $a0 $r2
 lw $t1 4($sp)
 addiu $sp $sp 4
 beq $a0 $t1 ifabthenaelsemod_true
 ifabthenaelsemod_false:
-	li $a0 mod
+	---MIPS implementation for mod (EXP)---
 	b ifabthenaelsemod_end_if
 ifabthenaelsemod_true:
-	li $a0 a
+	move $a0 $r1
 ifabthenaelsemod_end_if:
-li $a0 a
+move $a0 $r1
+---MIPS implementation for < (OP_REL)---
+move $a0 $r2
+move $a0 $r1
+---MIPS implementation for mod (EXP)---
+move $a0 $r1
 sw $a0 0($sp)
 addiu $sp $sp - 4
-li $a0 b
+move $a0 $r2
 lw $t1 4($sp)
 sub $a0 $t1 $a0
 addiu $sp $sp 4
+move $a0 $r2
+move $a0 $r2

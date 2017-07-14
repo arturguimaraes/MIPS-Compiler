@@ -1,6 +1,7 @@
 package compiler;
 
 public class Token {
+	
 	public String valor;
 	
 	public Token(String valor) {

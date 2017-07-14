@@ -80,12 +80,12 @@ I				::= D:D I:I
 D				::= DEF:def IDENTIFICADOR:identificador ABRE_PARENTESIS:abre_parentesis ARGS:ARGS FECHA_PARENTESIS:fecha_parentesis IGUAL:igual EXP:EXP PONTO_E_VIRGULA:ponto_e_virgula
                   {:
                     No no = new No(def, "DEF");
-                    no.addFilho(identificador, "IDENTIFICADOR");
+                    no.addFilho(identificador, "IDENTIFICADOR_FUNCAO_DEF");
                     no.addFilho(abre_parentesis, "ABRE_PARENTESIS");
                     no.addFilho(ARGS);
                     no.addFilho(fecha_parentesis, "FECHA_PARENTESIS");
                     no.addFilho(igual, "IGUAL");
-                    no.addFilho(EXP, "EXP");
+                    no.addFilho(EXP);
                     no.addFilho(ponto_e_virgula, "PONTO_E_VIRGULA");
                     RESULT = no;
                   :}
@@ -93,14 +93,14 @@ D				::= DEF:def IDENTIFICADOR:identificador ABRE_PARENTESIS:abre_parentesis ARG
                   
 ARGS			::= IDENTIFICADOR:identificador VIRGULA:virgula ARGS:ARGS
                   {:
-                    No no = new No(identificador, "IDENTIFICADOR");
+                    No no = new No(identificador, "IDENTIFICADOR_PARAM");
                     no.addFilho(virgula, "VIRGULA");
                     no.addFilho(ARGS);
                     RESULT = no;
                   :}
                   | IDENTIFICADOR:identificador
                   {:
-                    No no = new No(identificador, "IDENTIFICADOR");
+                    No no = new No(identificador, "IDENTIFICADOR_PARAM");
                     RESULT = no;
                   :}
                   ;
@@ -126,7 +126,7 @@ EXP				::= INTEIRO:inteiro
                   :}
                   | IDENTIFICADOR:identificador
                   {:
-                    No no = new No(identificador, "IDENTIFICADOR");
+                    No no = new No(identificador, "IDENTIFICADOR_PARAM");
                     RESULT = no;
                   :}
                   | EXP:EXP1 OP_ARIT:OP_ARIT EXP:EXP2   

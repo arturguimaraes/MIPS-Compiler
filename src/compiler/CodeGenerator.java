@@ -5,158 +5,187 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class CodeGenerator {
-	No tree;
+	
+	private No tree;
+	private PilhaVariaveis variaveis;
 	
 	public CodeGenerator (No tree) throws IOException {
 		this.tree = tree;
+		this.variaveis = new PilhaVariaveis();
 	}
 	
 	public String GenerateCode() throws FileNotFoundException {
 		String result = GenerateCodeForNode(this.tree);
-		PrintWriter printer = new PrintWriter("mips.txt");
+		PrintWriter printer = new PrintWriter("MipsResultCode.txt");
 		printer.print(result);
 		printer.close();
 		return result;		
 	}
 	
 	public String GenerateCodeForNode(No node) {
-		String result = "";
-		
-		if(node.getFilhos() != null) {
-		
-			//Soma
-			if (compareToken(node.getFilho(0), "+")) {
-				result += codeGenSum(node, node.getFilho(1));
-			}
-			
-			//Subtração
-			if (compareToken(node.getFilho(0), "-")) {
-				result += codeGenSubtract(node, node.getFilho(1));
-			}
-			
-			//If
-			if (compareToken(node, "if")) {
-				result += codeGenIfThenElse(node.getFilho(0), node.getFilho(2), node.getFilho(4), node.getFilho(6));
-			}
-			
-			if(compareToken(node, "def")) {
-				int numberOfArgs = countArgs(node);
-				result += codeGenDefFunction(node.getFilho(0), numberOfArgs, node);
-			}
-			
-			//Gera código para todos os filhos
-			for (int i = 0; i < node.getFilhos().size(); i++) {
+		String result = codeGen(node);
+		//Gera código para todos os filhos
+		if(node.getFilhos() != null)			
+			for (int i = 0; i < node.getFilhos().size(); i++)
 				result += GenerateCodeForNode(node.getFilho(i));
-			}
-			
-		}
-
 		return result;
 	}
 	
-	public Boolean compareToken(No node, String sentence) {
-		return node.getToken().contains(sentence);
+	//FUNÇÕES DE GERAÇÃO DE CÓDIGO
+	public String codeGen(No e) {
+		switch (e.getTipo()) {
+			case "IDENTIFICADOR":
+				return codeGenId(e);
+			case "IDENTIFICADOR_PARAM":
+				return codeGenIdParam(e);
+			case "DEF":
+				return codeGenDefFunction(e);
+			case "EXP_ARIT":
+				return codeGenExpArit(e);
+			case "SE":
+				return codeGenIfThenElse(e);
+			//Casos que não se faz nada
+			case "IGUAL":
+				return codeGenEmpty();
+			case "INTEIRO":
+				return codeGenEmpty();
+			case "PONTO_E_VIRGULA":
+				return codeGenEmpty();
+			case "ABRE_PARENTESIS":
+				return codeGenEmpty();
+			case "VIRGULA":
+				return codeGenEmpty();
+			case "FECHA_PARENTESIS":
+				return codeGenEmpty();
+			case "OP_ARIT":
+				return codeGenEmpty();
+			case "IDENTIFICADOR_FUNCAO_DEF":
+				return codeGenEmpty();
+			case "ENTAO":
+				return codeGenEmpty();
+			case "SENAO":
+				return codeGenEmpty();
+			//Casos não tratados
+			default:
+				return codeGenDefault(e);
+		}
 	}
 	
-	public int countArgs(No node) {
-		if(compareToken(node.getFilho(0), "(")) {
-			return recursiveCountArgs(node.getFilho(1));
+	//cgen(IDENTIFICADOR)
+	public String codeGenId(No e) {
+		//Ex: a = 1;
+		if (e.comparaTipoFilho(0, "IGUAL") && e.comparaTipoFilho(1, "INTEIRO") && e.comparaTipoFilho(2, "PONTO_E_VIRGULA")) {
+			String id = e.getToken();
+			String reg = variaveis.add(id);
+			int value = Integer.parseInt(e.getFilho(1).getToken());
+			String result = "li " + reg + " " + value + "\n";
+			return result;
 		}
-		if(compareToken(node.getFilho(1), "(")) {
-			return recursiveCountArgs(node.getFilho(2));
-		}
-		return 0;
+		else
+			return codeGenDefault(e);
 	}
 	
-	public int recursiveCountArgs(No node) {
-		if(!compareToken(node, ",") && !compareToken(node, "(") && !compareToken(node, ")")) {
-			if(node.getFilhos()!= null && compareToken(node.getFilho(0), ","))
-				return 1 + recursiveCountArgs(node.getFilho(1));
-			else
-				return 1;
-		}
-		return 0;
+	//cgen(IDENTIFICADOR_PARAM)
+	public String codeGenIdParam(No e) {
+		//Ex: f(a);
+		String reg = this.variaveis.getReg(e.getToken());
+		return "move $a0 " + reg + "\n";
 	}
 	
-	//FUNÇÕES DE GERAÇÃO DE CÓDIGO cgen()
-
-	//cgen(e)
-	public String codeGenConstant(No e) {
-		String result = "";
-
-		result += "li $a0 " + e.getToken() + "\n";
-		
-		return result;
+	//cgen(def f(x1,...,xn) = e)
+	public String codeGenDefFunction(No e) {
+		if (e.comparaTipoFilho(0, "IDENTIFICADOR_FUNCAO_DEF")) {
+			String functionName = e.getFilho(0).getToken();
+			int z = (4 * e.countArgs()) + 8;
+			String result = functionName + "_entry:\n" +
+					  		"\tmove $fp $sp\n" +
+					  		"\tsw $ra 0($sp)\n" + 
+					  		"\taddiu $sp $sp -4\n";
+			if (e.getFilho(e.getFilhos().size()-2).comparaTipo("EXP"))
+				result += codeGen(e.getFilho(e.getFilhos().size()-2));
+			if (e.getFilho(e.getFilhos().size()-3).comparaTipo("EXP"))
+				result += codeGen(e.getFilho(e.getFilhos().size()-3));
+			result += "\tlw $ra 4($sp)\n" +
+					  "\taddiu $sp $sp " + z + "\n" +
+					  "\tlw $fp 0($sp)\n" +
+					  "\tjr $ra\n";
+			return result;
+		}
+		else
+			return codeGenDefault(e);
+	}
+	
+	//cgen(EXP_ARIT)
+	public String codeGenExpArit(No e) {
+		switch (e.getFilho(0).getToken()) {
+			case "+":
+				return codeGenSum(e, e.getFilho(1));
+			case "-":
+				return codeGenSubtract(e, e.getFilho(1));
+			case "*":
+				return codeGenDefault(e);
+			case "/":
+				return codeGenDefault(e);
+			default:
+				return codeGenDefault(e);
+		}
 	}
 	
 	//cgen(e1 + e2)
 	public String codeGenSum(No e1, No e2) {
-		String result = "";
-
-		result += codeGenConstant(e1);
+		String result = codeGenIdParam(e1);
 		result += "sw $a0 0($sp)\n" +
 				  "addiu $sp $sp - 4\n";
-		result += codeGenConstant(e2);
+		result += codeGen(e2);
 		result += "lw $t1 4($sp)\n" + 
 				  "add $a0 $t1 $a0\n" + 
 				  "addiu $sp $sp 4\n";
-		
 		return result;
 	}
 	
 	//cgen(e1 - e2)
 	public String codeGenSubtract(No e1, No e2) {
-		String result = "";
-
-		result += codeGenConstant(e1);
+		String result = codeGenIdParam(e1);
 		result += "sw $a0 0($sp)\n" +
 				  "addiu $sp $sp - 4\n";
-		result += codeGenConstant(e2);
+		result += codeGen(e2);
 		result += "lw $t1 4($sp)\n" + 
 				  "sub $a0 $t1 $a0\n" + 
 				  "addiu $sp $sp 4\n";
-		
 		return result;
 	}
 	
 	//cgen(if e1 = e2 then e3 else e4)
-	public String codeGenIfThenElse(No e1, No e2, No e3, No e4) {
+	public String codeGenIfThenElse(No e) {
+		No e1 = e.getFilho(0);
+		No e2 = e.getFilho(2);
+		No e3 = e.getFilho(4);
+		No e4 = e.getFilho(6);
 		String ifName = "if" + e1.getToken() + e2.getToken() + "then" + e3.getToken() + "else" + e4.getToken();
-		String result = "";
-		
-		result += codeGenConstant(e1);
+		String result = codeGen(e1);
 		result += "sw $a0 0($sp)\n" +
 				  "addiu $sp $sp - 4\n";
-		result += codeGenConstant(e2);
+		result += codeGen(e2);
 		result += "lw $t1 4($sp)\n" +
 				  "addiu $sp $sp 4\n" +
 				  "beq $a0 $t1 " + ifName + "_true\n" +
 				  ifName + "_false:\n";
-		result += "\t" + codeGenConstant(e4);
+		result += "\t" + codeGen(e4);
 		result += "\tb " + ifName + "_end_if\n" +
 				  ifName + "_true:\n" + 
-				  "\t" + codeGenConstant(e3) +
+				  "\t" + codeGen(e3) +
 				  ifName + "_end_if:\n";
-		
 		return result;
 	}
 	
-	//cgen(def f(x1,...,xn) = e)
-	public String codeGenDefFunction(No functionNameNode, int numberOfArgs, No e) {
-		int z = (4 * numberOfArgs) + 8;
-		String result = "";
-
-		result += functionNameNode.getToken() + "_entry:\n" +
-				  "\tmove $fp $sp\n" +
-				  "\tsw $ra 0($sp)\n" + 
-				  "\taddiu $sp $sp -4\n";
-		result += codeGenConstant(e);
-		result += "\tlw $ra 4($sp)\n" +
-				  "\taddiu $sp $sp " + z + "\n" +
-				  "\tlw $fp 0($sp)\n" +
-				  "\tjr $ra\n";
-		
-		return result;
+	//DEFAULT cgen(e)
+	public String codeGenDefault(No e) {
+		return "---MIPS implementation for " + e.getToken() + " (" + e.getTipo() + ")---\n";
+	}
+	
+	//EMPTY returns ""
+	public String codeGenEmpty() {
+		return "";
 	}
 
 }
