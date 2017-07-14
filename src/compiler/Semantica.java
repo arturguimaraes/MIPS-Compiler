@@ -40,7 +40,9 @@ public class Semantica {
 			System.out.print("Erro de semantica: parametros duplicados");
 		}
 		
-		//b) as funções chamadas foram definidas e com a quantidade de parâmetros compatível,  
+		//b) as funções chamadas foram definidas e com a quantidade de parâmetros compatível, 
+		detectaChamadas(raiz);
+		
 		
 		//a) os identificadores que aparecem em cada função são passados como parâmetros, 
 		//primeiro colocar todos os identificadores inicializados numa lista, percorrendo da raiz procurando comandos de atribuicao
@@ -50,6 +52,62 @@ public class Semantica {
 		checaIds(raiz);		
 		
 		System.out.println("Analise Semantica Concluida");
+	}
+
+	private static void detectaChamadas(No raiz) {
+		int numParams = 0;
+		boolean achou = false;
+		boolean paramsDiferentes = false;
+		//ver se estou em uma chamada de funcao
+		if(!checaNaoIdentificador(raiz.getToken())) {
+			if(raiz.getTipo().equals("EXP")) {
+				//primeiro filho eh (
+				//segundo filho eh parametro, pode ser identificador ou exp, mas ainda conta como 1
+				//os filhos do segundo filho sao o restante dos parametros, sendo que o primeiro eh virgula
+				//ultimo filho eh )
+				if(raiz.getFilhos() != null) {
+					if(!raiz.getFilho(1).getTipo().equals("FECHA_PARENTESIS")) { // verificar se nao eh funcao sem parametros
+						numParams = contaParametros(raiz.getFilho(1));
+					}
+				}
+				//ja contei quantos parametros, agora tenho que ver se bate com o numero de parametros de funcs
+				for(Funcao f1: funcs) {
+					if(f1.nome.equals(raiz.getToken())) {
+						achou = true;
+						int paramsAlvo = f1.params.size();
+						if(numParams != paramsAlvo) {
+							paramsDiferentes = true;
+						}
+					}
+				}
+				if(!achou) {
+					System.out.println("Funcao "+ raiz.getToken() + " nao definida.");
+				}
+				if(paramsDiferentes) {
+					System.out.println("Chamada de funcao "+ raiz.getToken() + " possui numero incorreto de parametros.");
+				}
+			}
+		}
+		if(raiz.getFilhos() != null) {
+			for(No n: raiz.getFilhos()) {
+				detectaChamadas(n);
+			}			
+		}
+	}
+
+	private static int contaParametros(No raiz) {
+		int counter = 1; // ja comeco em um pq raiz eh parametro
+		//filhos pares de raiz serao virgulas
+		//filhos pares serao expressoes: dessas expressoes, so o primeiro caracter aparecera como filho de raiz
+		//o resto da expressao sera filho do primeiro caracter dela
+		if(raiz.getFilhos() != null) {
+			for (int i = 0; i < raiz.getFilhos().size(); i++) {
+				if(!raiz.getFilho(i).getTipo().equals("VIRGULA")) {
+					counter++;
+				}
+			}
+		}
+		return counter;
 	}
 
 	public static void checaIds(No raiz) {
